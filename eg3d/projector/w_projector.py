@@ -25,8 +25,10 @@ def project(
         *,
         num_steps=1000,
         w_avg_samples=10000,
-        initial_learning_rate=0.01,
-        initial_noise_factor=0.05,
+        #initial_learning_rate=0.01,
+        initial_learning_rate=0.1,
+        #initial_noise_factor=0.05,
+        initial_noise_factor=0,
         lr_rampdown_length=0.25,
         lr_rampup_length=0.05,
         noise_ramp_length=0.75,
@@ -87,10 +89,11 @@ def project(
 
     # Setup noise inputs.
     noise_bufs = {name: buf for (name, buf) in G.backbone.synthesis.named_buffers() if 'noise_const' in name}
-
+    print("buffers: ", G.backbone.synthesis.named_buffers())
+    
     # Load VGG16 feature detector.
-    #url = 'https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/metrics/vgg16.pt'
-    url = './networks/vgg16.pt'
+    url = 'https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/metrics/vgg16.pt'
+    #url = './networks/vgg16.pt'
     with dnnlib.util.open_url(url) as f:
         vgg16 = torch.jit.load(f).eval().to(device)
 
@@ -104,7 +107,9 @@ def project(
                          requires_grad=True)  # pylint: disable=not-callable
     print('w_opt shape: ',w_opt.shape)
 
-    optimizer = torch.optim.Adam([w_opt] + list(noise_bufs.values()), betas=(0.9, 0.999),
+    #optimizer = torch.optim.Adam([w_opt] + list(noise_bufs.values()), betas=(0.9, 0.999),
+    #                             lr=0.1)
+    optimizer = torch.optim.Adam([w_opt], betas=(0.9, 0.999),
                                  lr=0.1)
 
     # Init noise.
@@ -125,8 +130,9 @@ def project(
             param_group['lr'] = lr
 
         # Synth images from opt_w.
-        w_noise = torch.randn_like(w_opt) * w_noise_scale
-        ws = (w_opt + w_noise).repeat([1, G.backbone.mapping.num_ws, 1])
+        #w_noise = torch.randn_like(w_opt) * w_noise_scale
+        #ws = (w_opt + w_noise).repeat([1, G.backbone.mapping.num_ws, 1])
+        ws = (w_opt).repeat([1, G.backbone.mapping.num_ws, 1])
         synth_images = G.synthesis(ws,c, noise_mode='const')['image']
 
         if step % image_log_step == 0:
