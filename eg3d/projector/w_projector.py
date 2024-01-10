@@ -39,8 +39,8 @@ def project(
         image_log_step=100,
         w_name: str
 ):
-    os.makedirs(f'{outdir}/{w_name}_w',exist_ok=True)
-    outdir = f'{outdir}/{w_name}_w'
+    #os.makedirs(f'{outdir}/{w_name}_w',exist_ok=True)
+    #outdir = f'{outdir}/{w_name}_w'
     assert target.shape == (G.img_channels, G.img_resolution, G.img_resolution)
 
     def logprint(*args):
@@ -139,7 +139,7 @@ def project(
             with torch.no_grad():
                 vis_img = (synth_images.permute(0, 2, 3, 1) * 127.5 + 128).clamp(0, 255).to(torch.uint8)
 
-                PIL.Image.fromarray(vis_img[0].cpu().numpy(), 'RGB').save(f'{outdir}/{step}.png')
+                #PIL.Image.fromarray(vis_img[0].cpu().numpy(), 'RGB').save(f'{outdir}/{step}.png')
 
         # Downsample image to 256x256 if it's larger than that. VGG was built for 224x224 images.
         synth_images = (synth_images + 1) * (255 / 2)

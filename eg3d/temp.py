@@ -3,9 +3,14 @@ import numpy
 import os
 import dnnlib
 import torch
-import wget
-import run_projector
-import glob
+#import wget
+#import run_projector
+#import glob
+
+loc = '/playpen-nas-ssd/awang/data/orange_cat_preprocessed'
+for file in os.listdir(loc):
+    if file.endswith('.npy') and '_latent' not in file:
+        os.remove(os.path.join(loc, file))
 
 """
 out_dir = '/playpen-nas-ssd/awang/data/luchao_preprocessed'
@@ -18,7 +23,7 @@ for im in pngFilenamesList:
         count += 1
 print(count) 
 
-"""
+
 run_projector.run_direct(
         network_pkl='/playpen-nas-ssd/awang/eg3d_pti_inversion-main/inversion/utils/trained_luchao_50_images_no_lora.pkl',
         outdir=out_dir,
@@ -29,7 +34,7 @@ run_projector.run_direct(
         num_steps=500,
         nrr=None
     ) 
-"""
+
 for num in range(1, 1000):
     numString = (str)(num).rjust(8, '0') 
     imgname = '/playpen-nas-ssd/awang/data/ffhq_subset/00000/' + numString + '.png'

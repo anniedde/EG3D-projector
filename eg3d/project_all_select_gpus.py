@@ -10,11 +10,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', type=str, help='folder where preprocessed training images are')
 parser.add_argument('--index', type=int)
 parser.add_argument('--gpus', type=int)
+parser.add_argument('--which_gpus', type=str, required=False)
 args = parser.parse_args()
 
 print('running project_all')
 
 num_gpus = args.gpus
+if args.which_gpus:
+    os.environ['CUDA_VISIBLE_DEVICES'] = args.which_gpus
+    num_gpus = len(args.which_gpus.split(','))
 out_dir = args.data_dir
 if out_dir and out_dir[-1] == '/':
     out_dir = out_dir[:-1]

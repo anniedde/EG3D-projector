@@ -3,21 +3,22 @@ import numpy
 import os
 import dnnlib
 import torch
-import wget
 import run_projector
 
-data_loc = '/playpen-nas-ssd/awang/eg3d/dataset_preprocessing/ffhq/luchao/'
-dataset_json_loc = data_loc + 'dataset.json'
+for year in ['2007', '2011', '2015', '2017', '2023']:
 
-with open(dataset_json_loc) as f:
-    dataset_json = json.load(f)
+    data_loc = f'/playpen-nas-ssd/awang/data/Taylor/Taylor_Swift_{year}/test/preprocessed/'
+    dataset_json_loc = data_loc + 'dataset.json'
 
-labels = dataset_json['labels']
+    with open(dataset_json_loc) as f:
+        dataset_json = json.load(f)
 
-for entry in labels:
-    img_file_name = entry[0]
-    params = entry[1]
-    out_loc = data_loc + img_file_name[:-3] + 'npy'
+    labels = dataset_json['labels']
 
-    np_array = numpy.array(params)
-    numpy.save(out_loc, params)
+    for entry in labels:
+        img_file_name = entry[0]
+        params = entry[1]
+        out_loc = data_loc + img_file_name[:-3] + 'npy'
+
+        np_array = numpy.array(params)
+        numpy.save(out_loc, params)
