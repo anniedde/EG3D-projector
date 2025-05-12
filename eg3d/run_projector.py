@@ -23,6 +23,7 @@ import legacy
 from torchvision.transforms import transforms
 from projector import w_projector,w_plus_projector
 from PIL import Image
+os.environ['MKL_SERVICE_FORCE_INTEL'] = '1'
 # ----------------------------------------------------------------------------
 
 
@@ -62,7 +63,7 @@ def parse_tuple(s: Union[str, Tuple[int, int]]) -> Tuple[int, int]:
 @click.command()
 @click.option('--network', 'network_pkl', help='Network pickle filename', required=True)
 @click.option('--outdir', help='Output directory', type=str, required=True, metavar='DIR')
-@click.option('--latent_space_type', help='latent_space_type', type=click.Choice(['w', 'w_plus']), required=False, metavar='STR',
+@click.option('--latent_space_type', help='latent_space_type', type=click.Choice(['w', 'w-plus']), required=False, metavar='STR',
               default='w', show_default=True)
 @click.option('--image_path', help='image_path', type=str, required=True, metavar='STR', show_default=True)
 @click.option('--c_path', help='camera parameters path', type=str, required=True, metavar='STR', show_default=True)
@@ -127,13 +128,13 @@ def run(
     id_image = torch.squeeze((from_im.cuda() + 1) / 2) * 255
 
     if latent_space_type == 'w':
-
+        print('Projecting to w space')
         w = w_projector.project(G, c, outdir,id_image, device=torch.device('cuda'), w_avg_samples=600,num_steps = num_steps,
                                 w_name=image_name)
     else:
-
+        print('Projecting to w_plus space')
         w = w_plus_projector.project(G, c,outdir, id_image, device=torch.device('cuda'), w_avg_samples=600, w_name=image_name,num_steps = num_steps )
-        pass
+    
 
     w = w.detach().cpu().numpy()
     #np.save(f'{outdir}/{image_name}_{latent_space_type}/{image_name}_latent.npy', w)

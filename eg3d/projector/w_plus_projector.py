@@ -27,7 +27,7 @@ def project(
         num_steps=1000,
         w_avg_samples=10000,
         initial_learning_rate=0.01,
-        initial_noise_factor=0.05,
+        initial_noise_factor=0, #0.05
         lr_rampdown_length=0.25,
         lr_rampup_length=0.05,
         noise_ramp_length=0.75,
@@ -38,8 +38,8 @@ def project(
         image_log_step=100,
         w_name: str
 ):
-    os.makedirs(f'{outdir}/{w_name}_w_plus', exist_ok=True)
-    outdir = f'{outdir}/{w_name}_w_plus'
+    #os.makedirs(f'{outdir}/{w_name}_w_plus', exist_ok=True)
+    #outdir = f'{outdir}/{w_name}_w_plus'
     assert target.shape == (G.img_channels, G.img_resolution, G.img_resolution)
 
     def logprint(*args):
@@ -95,8 +95,8 @@ def project(
     noise_bufs = {name: buf for (name, buf) in G.backbone.synthesis.named_buffers() if 'noise_const' in name}
 
     # Load VGG16 feature detector.
-    #url = 'https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/metrics/vgg16.pt'
-    url = './networks/vgg16.pt'
+    url = 'https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/metrics/vgg16.pt'
+    #url = './networks/vgg16.pt'
     with dnnlib.util.open_url(url) as f:
         vgg16 = torch.jit.load(f).eval().to(device)
 
@@ -109,10 +109,11 @@ def project(
     start_w = np.repeat(start_w, G.backbone.mapping.num_ws, axis=1)
     w_opt = torch.tensor(start_w, dtype=torch.float32, device=device,
                          requires_grad=True)  # pylint: disable=not-callable
-
-    optimizer = torch.optim.Adam([w_opt] + list(noise_bufs.values()), betas=(0.9, 0.999),
+    print('w_opt shape: ',w_opt.shape)
+    #optimizer = torch.optim.Adam([w_opt] + list(noise_bufs.values()), betas=(0.9, 0.999),
+    #                             lr=0.1)
+    optimizer = torch.optim.Adam([w_opt], betas=(0.9, 0.999),
                                  lr=0.1)
-
     # Init noise.
     for buf in noise_bufs.values():
         buf[:] = torch.randn_like(buf)
@@ -131,15 +132,11 @@ def project(
             param_group['lr'] = lr
 
         # Synth images from opt_w.
-        w_noise = torch.randn_like(w_opt) * w_noise_scale
-        ws = (w_opt + w_noise)
+        #w_noise = torch.randn_like(w_opt) * w_noise_scale
+        #ws = (w_opt + w_noise)
+        ws = w_opt
         synth_images = G.synthesis(ws,c, noise_mode='const')['image']
 
-        if step % image_log_step == 0:
-            with torch.no_grad():
-                vis_img = (synth_images.permute(0, 2, 3, 1) * 127.5 + 128).clamp(0, 255).to(torch.uint8)
-
-                PIL.Image.fromarray(vis_img[0].cpu().numpy(), 'RGB').save(f'{outdir}/{step}.png')
 
         # Downsample image to 256x256 if it's larger than that. VGG was built for 224x224 images.
         synth_images = (synth_images + 1) * (255 / 2)
